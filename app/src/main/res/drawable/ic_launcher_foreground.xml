@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Butterfly Body -->
+    <path
+        android:fillColor="#FF69B4"
+        android:pathData="M54,45 Q54,38 54,52 Q54,58 54,52 Z"
+        android:strokeWidth="2"
+        android:strokeColor="#FF1493" />
+    
+    <!-- Left Wing Top -->
+    <path
+        android:fillColor="#FFB6C1"
+        android:pathData="M54,50 Q38,40 35,50 Q38,55 54,50 Z"
+        android:strokeWidth="1"
+        android:strokeColor="#FF69B4" />
+    
+    <!-- Left Wing Bottom -->
+    <path
+        android:fillColor="#FFC0CB"
+        android:pathData="M54,50 Q40,55 38,60 Q42,58 54,50 Z"
+        android:strokeWidth="1"
+        android:strokeColor="#FF69B4" />
+    
+    <!-- Right Wing Top -->
+    <path
+        android:fillColor="#FFB6C1"
+        android:pathData="M54,50 Q70,40 73,50 Q70,55 54,50 Z"
+        android:strokeWidth="1"
+        android:strokeColor="#FF69B4" />
+    
+    <!-- Right Wing Bottom -->
+    <path
+        android:fillColor="#FFC0CB"
+        android:pathData="M54,50 Q68,55 70,60 Q66,58 54,50 Z"
+        android:strokeWidth="1"
+        android:strokeColor="#FF69B4" />
+    
+    <!-- Antennae -->
+    <path
+        android:strokeColor="#FF69B4"
+        android:strokeWidth="1.5"
+        android:pathData="M52,45 L50,40 M56,45 L58,40" />
+    
+    <!-- Antennae Tips -->
+    <path
+        android:fillColor="#FF69B4"
+        android:pathData="M50,40 m-2,0 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0" />
+    <path
+        android:fillColor="#FF69B4"
+        android:pathData="M58,40 m-2,0 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0" />
+</vector>
