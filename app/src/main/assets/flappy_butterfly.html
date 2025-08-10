@@ -1,0 +1,2441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Butterfly Adventure - Spider Dodge</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(to bottom, #87CEEB 0%, #98D8E8 50%, #B0E0E6 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .game-container {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            position: relative;
+            width: 100%;
+            max-width: 440px;
+        }
+
+        canvas {
+            border: 3px solid #FFB6C1;
+            border-radius: 15px;
+            display: block;
+            background: linear-gradient(to bottom, #87CEEB 0%, #E0F6FF 100%);
+            width: 100%;
+            height: auto;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #FFE4E1;
+            border-radius: 10px;
+        }
+
+        .score {
+            font-size: 24px;
+            font-weight: bold;
+            color: #FF69B4;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .high-score {
+            font-size: 18px;
+            color: #FF1493;
+        }
+
+        .power-up-indicator {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 215, 0, 0.9);
+            color: #333;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            display: none;
+            animation: pulse 0.5s infinite alternate;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .star-power-indicator {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(65, 105, 225, 0.9);
+            color: #FFD700;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            display: none;
+            animation: pulse 0.5s infinite alternate;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .power-up-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 3px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .power-up-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FFD700, #FFA500);
+            border-radius: 3px;
+            transition: width 0.1s ease-out;
+        }
+
+        .star-power-bar-fill {
+            background: linear-gradient(90deg, #FFD700, #FF69B4);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        @keyframes pulse {
+            from { transform: translateX(-50%) scale(1); }
+            to { transform: translateX(-50%) scale(1.05); }
+        }
+
+        .escape-indicator {
+            position: absolute;
+            top: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 0, 0, 0.9);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            display: none;
+            animation: shake 0.3s infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(-50%) rotate(0deg); }
+            25% { transform: translateX(-52%) rotate(-1deg); }
+            75% { transform: translateX(-48%) rotate(1deg); }
+        }
+
+        .controls {
+            text-align: center;
+            margin-top: 15px;
+            color: #666;
+            font-size: 16px;
+        }
+
+        .game-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px 50px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            display: none;
+            z-index: 10;
+        }
+
+        .game-message h2 {
+            color: #FF69B4;
+            font-size: 36px;
+            margin-bottom: 15px;
+        }
+
+        .game-message p {
+            color: #666;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .play-button {
+            background: #FF69B4;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(255, 105, 180, 0.3);
+            margin: 5px;
+        }
+
+        .play-button:hover {
+            background: #FF1493;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(255, 105, 180, 0.4);
+        }
+
+        .speed-options {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .speed-button {
+            background: #9370DB;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            margin: 0 5px;
+        }
+
+        .speed-button:hover {
+            background: #7B68EE;
+            transform: translateY(-2px);
+        }
+
+        .speed-button.selected {
+            background: #FF69B4;
+        }
+
+        .clouds {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .cloud {
+            position: absolute;
+            background: white;
+            border-radius: 100px;
+            opacity: 0.7;
+            animation: float 20s infinite;
+        }
+
+        .cloud::before,
+        .cloud::after {
+            content: '';
+            position: absolute;
+            background: white;
+            border-radius: 100px;
+        }
+
+        .cloud1 {
+            width: 100px;
+            height: 40px;
+            top: 20%;
+            animation-duration: 25s;
+        }
+
+        .cloud1::before {
+            width: 50px;
+            height: 50px;
+            top: -25px;
+            left: 10px;
+        }
+
+        .cloud1::after {
+            width: 60px;
+            height: 40px;
+            top: -15px;
+            right: 10px;
+        }
+
+        .cloud2 {
+            width: 80px;
+            height: 35px;
+            top: 40%;
+            animation-duration: 30s;
+            animation-delay: -10s;
+        }
+
+        .cloud2::before {
+            width: 40px;
+            height: 40px;
+            top: -20px;
+            left: 15px;
+        }
+
+        .cloud2::after {
+            width: 50px;
+            height: 35px;
+            top: -10px;
+            right: 15px;
+        }
+
+        @keyframes float {
+            from {
+                left: -200px;
+            }
+            to {
+                left: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="clouds">
+        <div class="cloud cloud1"></div>
+        <div class="cloud cloud2"></div>
+    </div>
+
+    <div class="game-container">
+        <div class="game-info">
+            <div class="score">Score: <span id="score">0</span></div>
+            <div class="high-score">Best: <span id="highScore">0</span></div>
+        </div>
+        
+        <div class="power-up-indicator" id="powerUpIndicator">
+            <div>🛡️ Shield Active!</div>
+            <div class="power-up-bar">
+                <div class="power-up-bar-fill" id="shieldBar"></div>
+            </div>
+        </div>
+        <div class="star-power-indicator" id="starPowerIndicator">
+            <div>⭐ STAR POWER! ⭐</div>
+            <div class="power-up-bar">
+                <div class="power-up-bar-fill star-power-bar-fill" id="starPowerBar"></div>
+            </div>
+        </div>
+        <div class="escape-indicator" id="escapeIndicator">TAP 3 TIMES TO ESCAPE! <span id="tapCount">0</span>/3</div>
+        
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+        
+        <div class="controls">
+            Tap screen to fly! 🦋
+        </div>
+
+        <div class="game-message" id="gameMessage">
+            <h2 id="messageTitle">Welcome!</h2>
+            <p id="messageText">Avoid the spiders and collect flowers!</p>
+            <div class="speed-options">
+                <button class="speed-button" id="slowSpeed">Slow</button>
+                <button class="speed-button selected" id="mediumSpeed">Medium</button>
+                <button class="speed-button" id="fastSpeed">Fast</button>
+            </div>
+            <button class="play-button" id="playButton">Play Game</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gameMessage = document.getElementById('gameMessage');
+        const messageTitle = document.getElementById('messageTitle');
+        const messageText = document.getElementById('messageText');
+        const playButton = document.getElementById('playButton');
+        const scoreElement = document.getElementById('score');
+        const highScoreElement = document.getElementById('highScore');
+        const powerUpIndicator = document.getElementById('powerUpIndicator');
+        const starPowerIndicator = document.getElementById('starPowerIndicator');
+        const escapeIndicator = document.getElementById('escapeIndicator');
+        const tapCountElement = document.getElementById('tapCount');
+        const shieldBar = document.getElementById('shieldBar');
+        const starPowerBar = document.getElementById('starPowerBar');
+        
+        // Speed selection buttons
+        const slowSpeedButton = document.getElementById('slowSpeed');
+        const mediumSpeedButton = document.getElementById('mediumSpeed');
+        const fastSpeedButton = document.getElementById('fastSpeed');
+
+        // Game variables
+        let gameState = 'menu'; // menu, playing, gameOver, captured, returning
+        let score = 0;
+        let highScore = localStorage.getItem('butterflyHighScore') || 0;
+        highScoreElement.textContent = highScore;
+        
+        // Game speed settings
+        let gameSpeed = 'medium'; // Default speed
+        const speedSettings = {
+            slow: {
+                spiderSpeed: 1.0,
+                webSpeed: 2.0,
+                gravity: 0.25,
+                jumpPower: -5.5,
+                spiderSpawnInterval: 150,
+                webCooldown: 240,
+                pullAcceleration: 0.008
+            },
+            medium: {
+                spiderSpeed: 1.5,
+                webSpeed: 3.0,
+                gravity: 0.3,
+                jumpPower: -6.0,
+                spiderSpawnInterval: 120,
+                webCooldown: 180,
+                pullAcceleration: 0.01
+            },
+            fast: {
+                spiderSpeed: 2.0,
+                webSpeed: 4.0,
+                gravity: 0.35,
+                jumpPower: -6.5,
+                spiderSpawnInterval: 90,
+                webCooldown: 120,
+                pullAcceleration: 0.015
+            }
+        };
+
+        // Butterfly properties
+        const butterfly = {
+            x: canvas.width / 6, // Start in left third of screen
+            y: canvas.height / 2,
+            width: 40,
+            height: 30,
+            velocity: 0,
+            gravity: speedSettings[gameSpeed].gravity,
+            jumpPower: speedSettings[gameSpeed].jumpPower,
+            wingPhase: 0,
+            shielded: false,
+            shieldTimer: 0,
+            starPowered: false,
+            starPowerTimer: 0,
+            captured: false,
+            capturedBy: null,
+            escapeTaps: 0,
+            pullSpeed: 0,
+            returning: false,
+            returnSpeed: 0,
+            targetX: canvas.width / 6
+        };
+
+        // Spiders properties
+        let spiders = [];
+        let spiderSpeed = speedSettings[gameSpeed].spiderSpeed;
+        let spiderSpawnTimer = 0;
+        let spiderSpawnInterval = speedSettings[gameSpeed].spiderSpawnInterval;
+        let spiderCount = 0; // Track spiders for frog spawning
+
+        // Frogs properties
+        let frogs = [];
+        let frogSpeed = speedSettings[gameSpeed].spiderSpeed * 0.8; // Frogs slightly slower than spiders
+
+        // Bats properties
+        let bats = [];
+        let batSpeed = speedSettings[gameSpeed].spiderSpeed * 1.4; // Bats faster than spiders (increased from 1.2)
+
+        // Webs properties
+        let webs = [];
+        let webSpeed = speedSettings[gameSpeed].webSpeed;
+
+        // Power-up flowers
+        let powerUpFlowers = [];
+        let powerUpSpawnTimer = 0;
+        const powerUpSpawnInterval = 600; // 10 seconds at 60fps
+
+        // Star power-ups
+        let starPowerUps = [];
+        let starPowerSpawnTimer = 0;
+        const starPowerSpawnInterval = 900; // 15 seconds at 60fps
+
+        // Particles for effects
+        let particles = [];
+        let webBreakParticles = [];
+        let starParticles = [];
+
+        // Show menu
+        gameMessage.style.display = 'block';
+
+        // Event listeners
+        playButton.addEventListener('click', startGame);
+        
+        // Speed selection event listeners
+        slowSpeedButton.addEventListener('click', () => selectSpeed('slow'));
+        mediumSpeedButton.addEventListener('click', () => selectSpeed('medium'));
+        fastSpeedButton.addEventListener('click', () => selectSpeed('fast'));
+        
+        // Touch events for mobile
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (gameState === 'playing') {
+                jump();
+            } else if (gameState === 'captured') {
+                attemptEscape();
+            } else if (gameState === 'menu' || gameState === 'gameOver') {
+                startGame();
+            }
+        });
+
+        canvas.addEventListener('click', () => {
+            if (gameState === 'playing') {
+                jump();
+            } else if (gameState === 'captured') {
+                attemptEscape();
+            } else if (gameState === 'menu' || gameState === 'gameOver') {
+                startGame();
+            }
+        });
+
+        function selectSpeed(speed) {
+            gameSpeed = speed;
+            
+            // Update button styles
+            document.querySelectorAll('.speed-button').forEach(button => {
+                button.classList.remove('selected');
+            });
+            
+            if (speed === 'slow') {
+                slowSpeedButton.classList.add('selected');
+            } else if (speed === 'medium') {
+                mediumSpeedButton.classList.add('selected');
+            } else if (speed === 'fast') {
+                fastSpeedButton.classList.add('selected');
+            }
+        }
+
+        function startGame() {
+            gameState = 'playing';
+            score = 0;
+            scoreElement.textContent = score;
+            butterfly.x = canvas.width / 6;
+            butterfly.y = canvas.height / 2;
+            butterfly.velocity = 0;
+            butterfly.gravity = speedSettings[gameSpeed].gravity;
+            butterfly.jumpPower = speedSettings[gameSpeed].jumpPower;
+            butterfly.shielded = false;
+            butterfly.shieldTimer = 0;
+            butterfly.starPowered = false;
+            butterfly.starPowerTimer = 0;
+            butterfly.captured = false;
+            butterfly.capturedBy = null;
+            butterfly.escapeTaps = 0;
+            butterfly.pullSpeed = 0;
+            butterfly.returning = false;
+            butterfly.returnSpeed = 0;
+            spiders = [];
+            spiderSpeed = speedSettings[gameSpeed].spiderSpeed;
+            frogSpeed = spiderSpeed * 0.8;
+            batSpeed = spiderSpeed * 1.4; // Updated to match
+            spiderSpawnInterval = speedSettings[gameSpeed].spiderSpawnInterval;
+            spiderCount = 0;
+            frogs = [];
+            bats = [];
+            webs = [];
+            webSpeed = speedSettings[gameSpeed].webSpeed;
+            powerUpFlowers = [];
+            starPowerUps = [];
+            particles = [];
+            webBreakParticles = [];
+            starParticles = [];
+            spiderSpawnTimer = 0;
+            powerUpSpawnTimer = 0;
+            starPowerSpawnTimer = 0;
+            powerUpIndicator.style.display = 'none';
+            starPowerIndicator.style.display = 'none';
+            escapeIndicator.style.display = 'none';
+            gameMessage.style.display = 'none';
+            
+            gameLoop();
+        }
+
+        function jump() {
+            butterfly.velocity = butterfly.jumpPower;
+            createJumpParticles();
+        }
+
+        function attemptEscape() {
+            butterfly.escapeTaps++;
+            tapCountElement.textContent = butterfly.escapeTaps;
+            createEscapeParticles();
+            
+            if (butterfly.escapeTaps >= 3) {
+                // Escaped!
+                if (butterfly.capturedBy) {
+                    // Break the web that caught the butterfly
+                    breakWeb(butterfly.capturedBy);
+                }
+                
+                butterfly.captured = false;
+                butterfly.capturedBy = null;
+                butterfly.escapeTaps = 0;
+                butterfly.pullSpeed = 0;
+                butterfly.returning = true;
+                butterfly.returnSpeed = 5;
+                gameState = 'returning';
+                escapeIndicator.style.display = 'none';
+                
+                // Create celebration particles
+                createEscapeSuccessParticles();
+            }
+        }
+
+        function breakWeb(spider) {
+            // Create web break particles
+            for (let i = 0; i < 20; i++) {
+                webBreakParticles.push({
+                    x: spider.x + Math.cos(spider.webAngle) * spider.webLength / 2,
+                    y: spider.y + Math.sin(spider.webAngle) * spider.webLength / 2,
+                    vx: Math.random() * 6 - 3,
+                    vy: Math.random() * 6 - 3,
+                    life: 1,
+                    size: Math.random() * 5 + 2
+                });
+            }
+            
+            // Reset the web that caught the butterfly
+            if (spider.webActive) {
+                spider.webActive = false;
+                spider.webLength = 0;
+                spider.webCooldown = speedSettings[gameSpeed].webCooldown;
+            }
+            
+            // Also reset second web if active
+            if (spider.secondWebActive) {
+                spider.secondWebActive = false;
+                spider.secondWebLength = 0;
+                spider.secondWebCooldown = speedSettings[gameSpeed].webCooldown;
+            }
+            
+            // Reset shot flags and capture flag
+            spider.shotFirstWeb = false;
+            spider.hasCaughtButterfly = false;
+        }
+
+        function createSpider() {
+            spiderCount++;
+            
+            // At score 150+, every 4th spider is a bat
+            if (score >= 150 && spiderCount % 4 === 0) {
+                createBat();
+            }
+            // At score 100+, every third spider is a frog (but not if it's a bat)
+            else if (score >= 100 && spiderCount % 3 === 0) {
+                createFrog();
+            } else {
+                const spider = {
+                    x: canvas.width + 30,
+                    y: Math.random() * (canvas.height - 100) + 50,
+                    radius: 25,
+                    legPhase: 0,
+                    webCooldown: 0,
+                    webActive: false,
+                    webLength: 0,
+                    webMaxLength: 200,
+                    webAngle: 0,
+                    secondWebCooldown: 0,
+                    secondWebActive: false,
+                    secondWebLength: 0,
+                    secondWebAngle: 0,
+                    shotFirstWeb: false,
+                    hasCaughtButterfly: false,
+                    isKnockedOut: false,
+                    knockoutTimer: 0,
+                    knockoutVelocityX: 0,
+                    knockoutVelocityY: 0
+                };
+                spiders.push(spider);
+            }
+        }
+
+        function createFrog() {
+            const frog = {
+                x: canvas.width + 30,
+                y: canvas.height - 25, // Position lower at bottom (was -40, now -25)
+                radius: 25,
+                legPhase: 0,
+                tongueActive: false,
+                tongueLength: 0,
+                tongueMaxLength: 120, // Increased for more reach
+                tongueAngle: 0
+            };
+            frogs.push(frog);
+        }
+
+        function createBat() {
+            const bat = {
+                x: canvas.width + 30,
+                y: 0, // Start at top of screen
+                radius: 20,
+                wingPhase: 0,
+                state: 'hanging', // 'hanging', 'dropping', 'chasing'
+                dropTimer: 20, // Frames to wait before dropping (reduced from 30)
+                velocityY: 0,
+                startX: canvas.width + 30, // Track starting position for distance traveled
+                isKnockedOut: false,
+                knockoutTimer: 0,
+                knockoutVelocityX: 0,
+                knockoutVelocityY: 0
+            };
+            bats.push(bat);
+        }
+
+        function createPowerUpFlower() {
+            const flower = {
+                x: canvas.width + 30,
+                y: Math.random() * (canvas.height - 100) + 50,
+                radius: 25,
+                collected: false,
+                pulsePhase: 0
+            };
+            powerUpFlowers.push(flower);
+        }
+
+        function createStarPowerUp() {
+            const star = {
+                x: canvas.width + 30,
+                y: Math.random() * (canvas.height - 100) + 50,
+                radius: 20,
+                collected: false,
+                pulsePhase: 0,
+                rotation: 0
+            };
+            starPowerUps.push(star);
+        }
+
+        function createJumpParticles() {
+            for (let i = 0; i < 5; i++) {
+                particles.push({
+                    x: butterfly.x,
+                    y: butterfly.y + butterfly.height / 2,
+                    vx: Math.random() * 2 - 1,
+                    vy: Math.random() * 2 + 1,
+                    life: 1,
+                    color: `hsl(${Math.random() * 60 + 180}, 70%, 60%)`
+                });
+            }
+        }
+
+        function createEscapeParticles() {
+            for (let i = 0; i < 8; i++) {
+                particles.push({
+                    x: butterfly.x + butterfly.width / 2,
+                    y: butterfly.y + butterfly.height / 2,
+                    vx: Math.random() * 6 - 3,
+                    vy: Math.random() * 6 - 3,
+                    life: 1,
+                    color: '#FF0000'
+                });
+            }
+        }
+
+        function createEscapeSuccessParticles() {
+            for (let i = 0; i < 20; i++) {
+                particles.push({
+                    x: butterfly.x + butterfly.width / 2,
+                    y: butterfly.y + butterfly.height / 2,
+                    vx: Math.random() * 8 - 4,
+                    vy: Math.random() * 8 - 4,
+                    life: 1,
+                    color: '#00FF00'
+                });
+            }
+        }
+
+        function createScoreParticles() {
+            for (let i = 0; i < 10; i++) {
+                particles.push({
+                    x: butterfly.x,
+                    y: butterfly.y,
+                    vx: Math.random() * 4 - 2,
+                    vy: Math.random() * -4 - 2,
+                    life: 1,
+                    color: '#FFD700'
+                });
+            }
+        }
+
+        function createPowerUpParticles(x, y) {
+            for (let i = 0; i < 15; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.random() * 6 - 3,
+                    vy: Math.random() * 6 - 3,
+                    life: 1,
+                    color: '#FFD700'
+                });
+            }
+        }
+
+        function createBonusScoreParticles(x, y) {
+            for (let i = 0; i < 15; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.random() * 6 - 3,
+                    vy: Math.random() * -6 - 2,
+                    life: 1,
+                    color: '#00FF00'
+                });
+            }
+        }
+
+        function createStarParticles(x, y) {
+            for (let i = 0; i < 30; i++) {
+                const angle = (i / 30) * Math.PI * 2;
+                const speed = Math.random() * 5 + 2;
+                starParticles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: 1,
+                    size: Math.random() * 4 + 2,
+                    color: `hsl(${Math.random() * 60 + 40}, 100%, 70%)`
+                });
+            }
+        }
+
+        function createKnockoutParticles(x, y) {
+            for (let i = 0; i < 20; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.random() * 8 - 4,
+                    vy: Math.random() * 8 - 4,
+                    life: 1,
+                    color: '#FFD700'
+                });
+            }
+        }
+
+        function updateGame() {
+            if (gameState === 'captured') {
+                // Handle captured state
+                if (butterfly.capturedBy) {
+                    // Calculate direction to spider
+                    const dx = butterfly.capturedBy.x - butterfly.x;
+                    const dy = butterfly.capturedBy.y - butterfly.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    // Pull butterfly toward spider (slower now)
+                    butterfly.pullSpeed += speedSettings[gameSpeed].pullAcceleration;
+                    butterfly.x += (dx / distance) * butterfly.pullSpeed;
+                    butterfly.y += (dy / distance) * butterfly.pullSpeed;
+                    
+                    // Check if butterfly reached the spider
+                    if (distance < butterfly.capturedBy.radius) {
+                        gameOver();
+                    }
+                }
+                return;
+            }
+            
+            if (gameState === 'returning') {
+                // Handle returning to left side of screen
+                const dx = butterfly.targetX - butterfly.x;
+                const distance = Math.abs(dx);
+                
+                if (distance > 5) {
+                    // Move butterfly toward target position
+                    butterfly.x += (dx > 0 ? 1 : -1) * butterfly.returnSpeed;
+                    butterfly.returnSpeed *= 0.95; // Gradually slow down
+                    
+                    // Allow some vertical movement during return
+                    butterfly.velocity += butterfly.gravity;
+                    butterfly.y += butterfly.velocity;
+                    butterfly.wingPhase += 0.3;
+                } else {
+                    // Reached target position
+                    butterfly.x = butterfly.targetX;
+                    butterfly.returning = false;
+                    butterfly.returnSpeed = 0;
+                    gameState = 'playing';
+                }
+                return;
+            }
+            
+            // Update butterfly
+            butterfly.velocity += butterfly.gravity;
+            butterfly.y += butterfly.velocity;
+            butterfly.wingPhase += 0.3;
+
+            // Update shield
+            if (butterfly.shielded) {
+                butterfly.shieldTimer--;
+                // Update shield progress bar
+                const shieldProgress = butterfly.shieldTimer / 300; // 300 is max timer
+                shieldBar.style.width = (shieldProgress * 100) + '%';
+                
+                if (butterfly.shieldTimer <= 0) {
+                    butterfly.shielded = false;
+                    powerUpIndicator.style.display = 'none';
+                }
+            }
+
+            // Update star power
+            if (butterfly.starPowered) {
+                butterfly.starPowerTimer--;
+                // Update star power progress bar
+                const starProgress = butterfly.starPowerTimer / 450; // 450 is max timer
+                starPowerBar.style.width = (starProgress * 100) + '%';
+                
+                if (butterfly.starPowerTimer <= 0) {
+                    butterfly.starPowered = false;
+                    starPowerIndicator.style.display = 'none';
+                }
+            }
+
+            // Keep butterfly in left third of screen
+            const maxLeftX = canvas.width / 3;
+            if (butterfly.x > maxLeftX) {
+                butterfly.x = maxLeftX;
+                butterfly.velocity = 0;
+            }
+            if (butterfly.x < 0) {
+                butterfly.x = 0;
+                butterfly.velocity = 0;
+            }
+
+            // Check boundaries
+            if (butterfly.y < 0) {
+                butterfly.y = 0;
+                butterfly.velocity = 0;
+            }
+            if (butterfly.y + butterfly.height > canvas.height) {
+                butterfly.y = canvas.height - butterfly.height;
+                butterfly.velocity = 0;
+            }
+
+            // Spawn spiders
+            spiderSpawnTimer++;
+            if (spiderSpawnTimer >= spiderSpawnInterval) {
+                createSpider();
+                spiderSpawnTimer = 0;
+            }
+
+            // Spawn power-up flowers
+            powerUpSpawnTimer++;
+            if (powerUpSpawnTimer >= powerUpSpawnInterval) {
+                createPowerUpFlower();
+                powerUpSpawnTimer = 0;
+            }
+
+            // Spawn star power-ups
+            starPowerSpawnTimer++;
+            if (starPowerSpawnTimer >= starPowerSpawnInterval) {
+                createStarPowerUp();
+                starPowerSpawnTimer = 0;
+            }
+
+            // Update spiders
+            for (let i = spiders.length - 1; i >= 0; i--) {
+                // Handle knocked out spiders
+                if (spiders[i].isKnockedOut) {
+                    spiders[i].x += spiders[i].knockoutVelocityX;
+                    spiders[i].y += spiders[i].knockoutVelocityY;
+                    spiders[i].knockoutVelocityY += 0.5; // Gravity
+                    spiders[i].knockoutTimer++;
+                    
+                    // Remove if off-screen or timer expired
+                    if (spiders[i].x < -50 || spiders[i].x > canvas.width + 50 || 
+                        spiders[i].y > canvas.height + 50 || spiders[i].knockoutTimer > 120) {
+                        spiders.splice(i, 1);
+                        // Points already awarded when knocked out
+                    }
+                    continue;
+                }
+                
+                spiders[i].x -= spiderSpeed;
+                spiders[i].legPhase += 0.15;
+
+                // Shoot webs after score 20
+                if (score >= 20) {
+                    // Handle first web
+                    spiders[i].webCooldown--;
+                    if (spiders[i].webCooldown <= 0 && !spiders[i].webActive && !spiders[i].hasCaughtButterfly) {
+                        // Start first web
+                        spiders[i].webActive = true;
+                        spiders[i].webLength = 0;
+                        spiders[i].webAngle = Math.atan2(
+                            butterfly.y - spiders[i].y, 
+                            butterfly.x - spiders[i].x
+                        );
+                        spiders[i].shotFirstWeb = true;
+                    }
+                    
+                    // Extend first web
+                    if (spiders[i].webActive) {
+                        spiders[i].webLength += 2;
+                        if (spiders[i].webLength >= spiders[i].webMaxLength) {
+                            spiders[i].webActive = false;
+                            spiders[i].webLength = 0;
+                        }
+                    }
+                    
+                    // Handle second web at level 50+
+                    if (score >= 50 && spiders[i].shotFirstWeb && !spiders[i].hasCaughtButterfly) {
+                        spiders[i].secondWebCooldown--;
+                        
+                        // Start second web after first is fully retracted
+                        if (spiders[i].secondWebCooldown <= 0 && !spiders[i].secondWebActive && !spiders[i].webActive) {
+                            // Start second web
+                            spiders[i].secondWebActive = true;
+                            spiders[i].secondWebLength = 0;
+                            spiders[i].secondWebAngle = Math.atan2(
+                                butterfly.y - spiders[i].y, 
+                                butterfly.x - spiders[i].x
+                            );
+                        }
+                        
+                        // Extend second web
+                        if (spiders[i].secondWebActive) {
+                            spiders[i].secondWebLength += 2;
+                            if (spiders[i].secondWebLength >= spiders[i].webMaxLength) {
+                                spiders[i].secondWebActive = false;
+                                spiders[i].secondWebLength = 0;
+                                spiders[i].secondWebCooldown = speedSettings[gameSpeed].webCooldown;
+                                spiders[i].shotFirstWeb = false;
+                            }
+                        }
+                    }
+                }
+
+                // Check collision with butterfly (only if not shielded and not star powered)
+                if (!butterfly.shielded && !butterfly.captured && !butterfly.starPowered) {
+                    const dx = (butterfly.x + butterfly.width / 2) - spiders[i].x;
+                    const dy = (butterfly.y + butterfly.height / 2) - spiders[i].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < (butterfly.width / 2 + spiders[i].radius)) {
+                        gameOver();
+                    }
+                    
+                    // Check first web collision (only if web hasn't caught butterfly before)
+                    if (spiders[i].webActive && !spiders[i].hasCaughtButterfly) {
+                        // Calculate web end point
+                        const webEndX = spiders[i].x + Math.cos(spiders[i].webAngle) * spiders[i].webLength;
+                        const webEndY = spiders[i].y + Math.sin(spiders[i].webAngle) * spiders[i].webLength;
+                        
+                        // Check if butterfly is touching the web line
+                        const distToLine = pointToLineDistance(
+                            butterfly.x + butterfly.width / 2,
+                            butterfly.y + butterfly.height / 2,
+                            spiders[i].x,
+                            spiders[i].y,
+                            webEndX,
+                            webEndY
+                        );
+                        
+                        if (distToLine < 15) {
+                            // Capture the butterfly
+                            butterfly.captured = true;
+                            butterfly.capturedBy = spiders[i];
+                            butterfly.escapeTaps = 0;
+                            butterfly.pullSpeed = 0.5; // Reduced initial pull speed
+                            gameState = 'captured';
+                            escapeIndicator.style.display = 'block';
+                            tapCountElement.textContent = '0';
+                            spiders[i].hasCaughtButterfly = true;
+                        }
+                    }
+                    
+                    // Check second web collision (at level 50+, only if web hasn't caught butterfly before)
+                    if (score >= 50 && spiders[i].secondWebActive && !spiders[i].hasCaughtButterfly) {
+                        // Calculate web end point
+                        const webEndX = spiders[i].x + Math.cos(spiders[i].secondWebAngle) * spiders[i].secondWebLength;
+                        const webEndY = spiders[i].y + Math.sin(spiders[i].secondWebAngle) * spiders[i].secondWebLength;
+                        
+                        // Check if butterfly is touching the web line
+                        const distToLine = pointToLineDistance(
+                            butterfly.x + butterfly.width / 2,
+                            butterfly.y + butterfly.height / 2,
+                            spiders[i].x,
+                            spiders[i].y,
+                            webEndX,
+                            webEndY
+                        );
+                        
+                        if (distToLine < 15) {
+                            // Capture the butterfly
+                            butterfly.captured = true;
+                            butterfly.capturedBy = spiders[i];
+                            butterfly.escapeTaps = 0;
+                            butterfly.pullSpeed = 0.5; // Reduced initial pull speed
+                            gameState = 'captured';
+                            escapeIndicator.style.display = 'block';
+                            tapCountElement.textContent = '0';
+                            spiders[i].hasCaughtButterfly = true;
+                        }
+                    }
+                }
+                
+                // Check collision with star-powered butterfly (knockout spider)
+                if (butterfly.starPowered && !spiders[i].isKnockedOut) {
+                    const dx = (butterfly.x + butterfly.width / 2) - spiders[i].x;
+                    const dy = (butterfly.y + butterfly.height / 2) - spiders[i].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < (butterfly.width / 2 + spiders[i].radius + 10)) {
+                        // Knock out the spider
+                        spiders[i].isKnockedOut = true;
+                        spiders[i].knockoutTimer = 0;
+                        spiders[i].knockoutVelocityX = (dx / distance) * 15;
+                        spiders[i].knockoutVelocityY = (dy / distance) * 15 - 8; // Upward bias
+                        
+                        // Create knockout particles
+                        createKnockoutParticles(spiders[i].x, spiders[i].y);
+                        
+                        // Add score for knockout
+                        score += 5;
+                        scoreElement.textContent = score;
+                        createScoreParticles();
+                    }
+                }
+
+                // Remove off-screen spiders
+                if (spiders[i].x < -spiders[i].radius) {
+                    spiders.splice(i, 1);
+                    score++;
+                    scoreElement.textContent = score;
+                    createScoreParticles();
+                }
+            }
+
+            // Update frogs
+            for (let i = frogs.length - 1; i >= 0; i--) {
+                frogs[i].x -= frogSpeed;
+
+                // Check if butterfly is near the bottom and frog can attack
+                const butterflyBottom = butterfly.y + butterfly.height;
+                if (butterflyBottom > canvas.height - 80 && !frogs[i].tongueActive && !butterfly.shielded && !butterfly.captured && !butterfly.starPowered) {
+                    // Calculate distance to butterfly
+                    const dx = (butterfly.x + butterfly.width / 2) - frogs[i].x;
+                    const dy = (butterfly.y + butterfly.height / 2) - frogs[i].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    // If butterfly is close enough, shoot tongue
+                    if (distance < 180) { // Increased range for better gameplay
+                        frogs[i].tongueActive = true;
+                        frogs[i].tongueLength = 0;
+                        frogs[i].tongueAngle = Math.atan2(dy, dx);
+                    }
+                }
+
+                // Handle tongue attack
+                if (frogs[i].tongueActive) {
+                    frogs[i].tongueLength += 6.4; // Slower tongue extension (reduced by 20%)
+                    
+                    // Calculate tongue end point
+                    const tongueEndX = frogs[i].x + Math.cos(frogs[i].tongueAngle) * frogs[i].tongueLength;
+                    const tongueEndY = frogs[i].y + Math.sin(frogs[i].tongueAngle) * frogs[i].tongueLength;
+                    
+                    // Check if tongue hits butterfly
+                    const dx = (butterfly.x + butterfly.width / 2) - tongueEndX;
+                    const dy = (butterfly.y + butterfly.height / 2) - tongueEndY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 20) { // Slightly larger hit area for sticky tongue
+                        // Frog eats butterfly
+                        gameOver();
+                    }
+                    
+                    // Retract tongue after reaching max length
+                    if (frogs[i].tongueLength >= frogs[i].tongueMaxLength) {
+                        frogs[i].tongueActive = false;
+                        frogs[i].tongueLength = 0;
+                    }
+                }
+
+                // Remove off-screen frogs
+                if (frogs[i].x < -frogs[i].radius) {
+                    frogs.splice(i, 1);
+                    score++;
+                    scoreElement.textContent = score;
+                    createScoreParticles();
+                }
+            }
+
+            // Update bats
+            for (let i = bats.length - 1; i >= 0; i--) {
+                // Handle knocked out bats
+                if (bats[i].isKnockedOut) {
+                    bats[i].x += bats[i].knockoutVelocityX;
+                    bats[i].y += bats[i].knockoutVelocityY;
+                    bats[i].knockoutVelocityY += 0.5; // Gravity
+                    bats[i].knockoutTimer++;
+                    
+                    // Remove if off-screen or timer expired
+                    if (bats[i].x < -50 || bats[i].x > canvas.width + 50 || 
+                        bats[i].y > canvas.height + 50 || bats[i].knockoutTimer > 120) {
+                        bats.splice(i, 1);
+                    }
+                    continue;
+                }
+                
+                // Update wing animation - faster when chasing
+                if (bats[i].state === 'chasing') {
+                    bats[i].wingPhase += 0.5; // Faster wing flapping when chasing
+                } else {
+                    bats[i].wingPhase += 0.3; // Normal wing flapping
+                }
+
+                // Move bat left with the screen
+                bats[i].x -= batSpeed;
+
+                // Handle bat states
+                if (bats[i].state === 'hanging') {
+                    bats[i].dropTimer--;
+                    // Improved drop detection - check if butterfly is in good chase position
+                    const dx = butterfly.x - bats[i].x;
+                    const dy = butterfly.y - bats[i].y;
+                    
+                    // Drop if butterfly is below and within range, or slightly ahead
+                    const horizontalRange = 80; // Increased range
+                    const shouldDrop = (dx > -horizontalRange && dx < horizontalRange * 0.5 && dy > 20) || 
+                                      bats[i].dropTimer <= 0;
+                    
+                    if (shouldDrop) {
+                        bats[i].state = 'dropping';
+                        bats[i].velocityY = 2;
+                    }
+                } else if (bats[i].state === 'dropping') {
+                    // Drop down
+                    bats[i].velocityY += 0.3;
+                    bats[i].y += bats[i].velocityY;
+                    
+                    // Start chasing when low enough
+                    if (bats[i].y > 50) {
+                        bats[i].state = 'chasing';
+                    }
+                } else if (bats[i].state === 'chasing') {
+                    // Chase butterfly more aggressively
+                    const dx = (butterfly.x + butterfly.width / 2) - bats[i].x;
+                    const dy = (butterfly.y + butterfly.height / 2) - bats[i].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    // Improved chase mechanics
+                    if (distance > 0) {
+                        // Increased chase speed and add slight prediction of butterfly movement
+                        const chaseSpeed = 2.5; // Increased from 1.5
+                        const predictX = butterfly.velocity * 5; // Predict vertical movement
+                        const predictedDx = dx;
+                        const predictedDy = dy + predictX;
+                        const predictedDistance = Math.sqrt(predictedDx * predictedDx + predictedDy * predictedDy);
+                        
+                        // Move toward predicted position
+                        if (predictedDistance > 0) {
+                            bats[i].x += (predictedDx / predictedDistance) * chaseSpeed;
+                            bats[i].y += (predictedDy / predictedDistance) * chaseSpeed;
+                        }
+                        
+                        // Add acceleration when close to butterfly for final catch
+                        if (distance < 100) {
+                            const bonusSpeed = (100 - distance) / 100; // 0 to 1 based on proximity
+                            bats[i].x += (dx / distance) * bonusSpeed * 1.5;
+                            bats[i].y += (dy / distance) * bonusSpeed * 1.5;
+                        }
+                    }
+                    
+                    // Reduced screen movement effect when actively chasing (was 0.5, now 0.2)
+                    bats[i].x -= batSpeed * 0.2;
+                    
+                    // Check collision with butterfly (only if not shielded and not star powered)
+                    if (!butterfly.shielded && !butterfly.captured && !butterfly.starPowered) {
+                        if (distance < (butterfly.width / 2 + bats[i].radius)) {
+                            gameOver();
+                        }
+                    }
+                    
+                    // Check collision with star-powered butterfly (knockout bat)
+                    if (butterfly.starPowered && !bats[i].isKnockedOut) {
+                        if (distance < (butterfly.width / 2 + bats[i].radius + 10)) {
+                            // Knock out the bat
+                            bats[i].isKnockedOut = true;
+                            bats[i].knockoutTimer = 0;
+                            bats[i].knockoutVelocityX = (dx / distance) * 15;
+                            bats[i].knockoutVelocityY = (dy / distance) * 15 - 8; // Upward bias
+                            
+                            // Create knockout particles
+                            createKnockoutParticles(bats[i].x, bats[i].y);
+                            
+                            // Add score for knockout
+                            score += 5;
+                            scoreElement.textContent = score;
+                            createScoreParticles();
+                        }
+                    }
+                }
+
+                // Remove bat if it has traveled 2 screen widths or gone off screen
+                const distanceTraveled = bats[i].startX - bats[i].x;
+                if (distanceTraveled > canvas.width * 2 || 
+                    bats[i].x < -bats[i].radius * 2 || 
+                    bats[i].y > canvas.height + bats[i].radius * 2 || 
+                    bats[i].y < -bats[i].radius * 3) {
+                    bats.splice(i, 1);
+                    score++;
+                    scoreElement.textContent = score;
+                    createScoreParticles();
+                }
+            }
+
+            // Update power-up flowers
+            for (let i = powerUpFlowers.length - 1; i >= 0; i--) {
+                powerUpFlowers[i].x -= spiderSpeed;
+                powerUpFlowers[i].pulsePhase += 0.1;
+
+                // Check collision with butterfly
+                const dx = (butterfly.x + butterfly.width / 2) - powerUpFlowers[i].x;
+                const dy = (butterfly.y + butterfly.height / 2) - powerUpFlowers[i].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < (butterfly.width / 2 + powerUpFlowers[i].radius)) {
+                    // Activate power-up
+                    butterfly.shielded = true;
+                    butterfly.shieldTimer = 300; // 5 seconds at 60fps
+                    powerUpIndicator.style.display = 'block';
+                    shieldBar.style.width = '100%'; // Reset bar to full
+                    createPowerUpParticles(powerUpFlowers[i].x, powerUpFlowers[i].y);
+                    
+                    // Add bonus point for collecting flower
+                    score++;
+                    scoreElement.textContent = score;
+                    createBonusScoreParticles(powerUpFlowers[i].x, powerUpFlowers[i].y);
+                    
+                    powerUpFlowers.splice(i, 1);
+                    continue;
+                }
+
+                // Remove off-screen flowers
+                if (powerUpFlowers[i].x < -powerUpFlowers[i].radius) {
+                    powerUpFlowers.splice(i, 1);
+                }
+            }
+
+            // Update star power-ups
+            for (let i = starPowerUps.length - 1; i >= 0; i--) {
+                starPowerUps[i].x -= spiderSpeed;
+                starPowerUps[i].pulsePhase += 0.15;
+                starPowerUps[i].rotation += 0.05;
+
+                // Check collision with butterfly
+                const dx = (butterfly.x + butterfly.width / 2) - starPowerUps[i].x;
+                const dy = (butterfly.y + butterfly.height / 2) - starPowerUps[i].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < (butterfly.width / 2 + starPowerUps[i].radius)) {
+                    // Activate star power
+                    butterfly.starPowered = true;
+                    butterfly.starPowerTimer = 450; // 7.5 seconds at 60fps
+                    starPowerIndicator.style.display = 'block';
+                    starPowerBar.style.width = '100%'; // Reset bar to full
+                    createStarParticles(starPowerUps[i].x, starPowerUps[i].y);
+                    
+                    // Add bonus points for collecting star
+                    score += 2;
+                    scoreElement.textContent = score;
+                    createBonusScoreParticles(starPowerUps[i].x, starPowerUps[i].y);
+                    
+                    starPowerUps.splice(i, 1);
+                    continue;
+                }
+
+                // Remove off-screen stars
+                if (starPowerUps[i].x < -starPowerUps[i].radius) {
+                    starPowerUps.splice(i, 1);
+                }
+            }
+
+            // Update particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].x += particles[i].vx;
+                particles[i].y += particles[i].vy;
+                particles[i].life -= 0.02;
+                
+                if (particles[i].life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+            
+            // Update web break particles
+            for (let i = webBreakParticles.length - 1; i >= 0; i--) {
+                webBreakParticles[i].x += webBreakParticles[i].vx;
+                webBreakParticles[i].y += webBreakParticles[i].vy;
+                webBreakParticles[i].life -= 0.03;
+                
+                if (webBreakParticles[i].life <= 0) {
+                    webBreakParticles.splice(i, 1);
+                }
+            }
+            
+            // Update star particles
+            for (let i = starParticles.length - 1; i >= 0; i--) {
+                starParticles[i].x += starParticles[i].vx;
+                starParticles[i].y += starParticles[i].vy;
+                starParticles[i].life -= 0.02;
+                
+                if (starParticles[i].life <= 0) {
+                    starParticles.splice(i, 1);
+                }
+            }
+        }
+
+        // Helper function to calculate distance from point to line segment
+        function pointToLineDistance(px, py, x1, y1, x2, y2) {
+            const A = px - x1;
+            const B = py - y1;
+            const C = x2 - x1;
+            const D = y2 - y1;
+            
+            const dot = A * C + B * D;
+            const lenSq = C * C + D * D;
+            let param = -1;
+            
+            if (lenSq !== 0) {
+                param = dot / lenSq;
+            }
+            
+            let xx, yy;
+            
+            if (param < 0) {
+                xx = x1;
+                yy = y1;
+            } else if (param > 1) {
+                xx = x2;
+                yy = y2;
+            } else {
+                xx = x1 + param * C;
+                yy = y1 + param * D;
+            }
+            
+            const dx = px - xx;
+            const dy = py - yy;
+            
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        function drawGame() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw sun
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.arc(canvas.width - 50, 50, 30, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw sun rays
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 3;
+            for (let i = 0; i < 8; i++) {
+                const angle = (i * Math.PI * 2) / 8;
+                ctx.beginPath();
+                ctx.moveTo(canvas.width - 50 + Math.cos(angle) * 40, 50 + Math.sin(angle) * 40);
+                ctx.lineTo(canvas.width - 50 + Math.cos(angle) * 55, 50 + Math.sin(angle) * 55);
+                ctx.stroke();
+            }
+
+            // Draw spiders
+            spiders.forEach(spider => {
+                drawSpider(spider);
+                
+                // Draw first web if active
+                if (spider.webActive) {
+                    drawHexagonalWeb(spider, spider.webAngle, spider.webLength);
+                }
+                
+                // Draw second web if active (at level 50+)
+                if (score >= 50 && spider.secondWebActive) {
+                    drawHexagonalWeb(spider, spider.secondWebAngle, spider.secondWebLength);
+                }
+            });
+
+            // Draw frogs
+            frogs.forEach(frog => {
+                drawFrog(frog);
+            });
+
+            // Draw bats
+            bats.forEach(bat => {
+                drawBat(bat);
+            });
+
+            // Draw power-up flowers
+            powerUpFlowers.forEach(flower => {
+                drawPowerUpFlower(flower.x, flower.y, flower.radius, flower.pulsePhase);
+            });
+
+            // Draw star power-ups
+            starPowerUps.forEach(star => {
+                drawStarPowerUp(star);
+            });
+
+            // Draw butterfly
+            drawButterfly();
+
+            // Draw particles
+            particles.forEach(particle => {
+                ctx.globalAlpha = particle.life;
+                ctx.fillStyle = particle.color;
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, 3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+            
+            // Draw web break particles
+            webBreakParticles.forEach(particle => {
+                ctx.globalAlpha = particle.life;
+                ctx.fillStyle = '#FFFFFF';
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+            
+            // Draw star particles
+            starParticles.forEach(particle => {
+                ctx.globalAlpha = particle.life;
+                ctx.fillStyle = particle.color;
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+        }
+
+        function drawButterfly() {
+            ctx.save();
+            ctx.translate(butterfly.x + butterfly.width / 2, butterfly.y + butterfly.height / 2);
+
+            // Draw shield if active
+            if (butterfly.shielded) {
+                ctx.strokeStyle = '#FFD700';
+                ctx.lineWidth = 3;
+                ctx.globalAlpha = 0.5 + Math.sin(Date.now() * 0.01) * 0.3;
+                ctx.beginPath();
+                ctx.arc(0, 0, 30, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+            }
+
+            // Draw star power aura if active
+            if (butterfly.starPowered) {
+                ctx.strokeStyle = '#FFD700';
+                ctx.lineWidth = 4;
+                ctx.globalAlpha = 0.7 + Math.sin(Date.now() * 0.02) * 0.3;
+                ctx.beginPath();
+                ctx.arc(0, 0, 40, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                // Draw sparkles
+                ctx.fillStyle = '#FFD700';
+                for (let i = 0; i < 8; i++) {
+                    const angle = (i / 8) * Math.PI * 2 + Date.now() * 0.005;
+                    const distance = 35 + Math.sin(Date.now() * 0.01 + i) * 5;
+                    ctx.beginPath();
+                    ctx.arc(Math.cos(angle) * distance, Math.sin(angle) * distance, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.globalAlpha = 1;
+            }
+
+            // Body
+            ctx.fillStyle = butterfly.starPowered ? '#FFD700' : '#FF69B4';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 8, 15, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Wings
+            const wingFlap = Math.sin(butterfly.wingPhase) * 0.3;
+            
+            // Left wing
+            ctx.save();
+            ctx.rotate(-wingFlap);
+            ctx.fillStyle = butterfly.starPowered ? '#FFD700' : '#FFB6C1';
+            ctx.beginPath();
+            ctx.ellipse(-15, -5, 15, 10, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = butterfly.starPowered ? '#FFC0CB' : '#FFC0CB';
+            ctx.beginPath();
+            ctx.ellipse(-12, 5, 10, 8, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            // Right wing
+            ctx.save();
+            ctx.rotate(wingFlap);
+            ctx.fillStyle = butterfly.starPowered ? '#FFD700' : '#FFB6C1';
+            ctx.beginPath();
+            ctx.ellipse(15, -5, 15, 10, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = butterfly.starPowered ? '#FFC0CB' : '#FFC0CB';
+            ctx.beginPath();
+            ctx.ellipse(12, 5, 10, 8, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            // Antennae
+            ctx.strokeStyle = butterfly.starPowered ? '#FFD700' : '#FF69B4';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(-3, -15);
+            ctx.lineTo(-5, -20);
+            ctx.moveTo(3, -15);
+            ctx.lineTo(5, -20);
+            ctx.stroke();
+
+            // Antennae tips
+            ctx.fillStyle = butterfly.starPowered ? '#FFD700' : '#FF69B4';
+            ctx.beginPath();
+            ctx.arc(-5, -20, 2, 0, Math.PI * 2);
+            ctx.arc(5, -20, 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function drawBat(bat) {
+            ctx.save();
+            ctx.translate(bat.x, bat.y);
+
+            // Draw hanging upside down if hanging
+            if (bat.state === 'hanging') {
+                ctx.rotate(Math.PI); // Rotate 180 degrees
+            }
+
+            // Body
+            const bodyGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, bat.radius * 0.8);
+            bodyGradient.addColorStop(0, '#4A4A4A');
+            bodyGradient.addColorStop(1, '#1A1A1A');
+            ctx.fillStyle = bodyGradient;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, bat.radius * 0.6, bat.radius * 0.8, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Fuzzy texture on body
+            ctx.strokeStyle = '#333333';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i < 8; i++) {
+                const angle = (i / 8) * Math.PI * 2;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(Math.cos(angle) * bat.radius * 0.5, Math.sin(angle) * bat.radius * 0.6);
+                ctx.stroke();
+            }
+
+            // Head
+            ctx.fillStyle = '#2A2A2A';
+            ctx.beginPath();
+            ctx.ellipse(0, -bat.radius * 0.6, bat.radius * 0.45, bat.radius * 0.4, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Wings
+            const wingFlap = bat.state === 'chasing' ? 
+                            Math.sin(bat.wingPhase) * 0.6 : // Larger flapping when chasing
+                            Math.sin(bat.wingPhase) * 0.4;   // Normal flapping
+            
+            // Left wing
+            ctx.save();
+            ctx.rotate(-wingFlap);
+            ctx.fillStyle = bat.isKnockedOut ? '#666666' : '#1A1A1A';
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 1.5;
+            
+            ctx.beginPath();
+            ctx.moveTo(-bat.radius * 0.3, 0);
+            // Wing membrane
+            ctx.lineTo(-bat.radius * 1.8, -bat.radius * 0.3);
+            ctx.lineTo(-bat.radius * 1.9, bat.radius * 0.1);
+            ctx.lineTo(-bat.radius * 1.7, bat.radius * 0.4);
+            ctx.lineTo(-bat.radius * 1.4, bat.radius * 0.3);
+            ctx.lineTo(-bat.radius * 1.1, bat.radius * 0.4);
+            ctx.lineTo(-bat.radius * 0.8, bat.radius * 0.2);
+            ctx.lineTo(-bat.radius * 0.3, bat.radius * 0.3);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            // Wing bones
+            ctx.strokeStyle = '#333333';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(-bat.radius * 0.3, 0);
+            ctx.lineTo(-bat.radius * 1.8, -bat.radius * 0.3);
+            ctx.moveTo(-bat.radius * 0.3, 0);
+            ctx.lineTo(-bat.radius * 1.7, bat.radius * 0.4);
+            ctx.moveTo(-bat.radius * 0.3, 0);
+            ctx.lineTo(-bat.radius * 1.1, bat.radius * 0.4);
+            ctx.stroke();
+            ctx.restore();
+
+            // Right wing
+            ctx.save();
+            ctx.rotate(wingFlap);
+            ctx.fillStyle = bat.isKnockedOut ? '#666666' : '#1A1A1A';
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 1.5;
+            
+            ctx.beginPath();
+            ctx.moveTo(bat.radius * 0.3, 0);
+            // Wing membrane
+            ctx.lineTo(bat.radius * 1.8, -bat.radius * 0.3);
+            ctx.lineTo(bat.radius * 1.9, bat.radius * 0.1);
+            ctx.lineTo(bat.radius * 1.7, bat.radius * 0.4);
+            ctx.lineTo(bat.radius * 1.4, bat.radius * 0.3);
+            ctx.lineTo(bat.radius * 1.1, bat.radius * 0.4);
+            ctx.lineTo(bat.radius * 0.8, bat.radius * 0.2);
+            ctx.lineTo(bat.radius * 0.3, bat.radius * 0.3);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            // Wing bones
+            ctx.strokeStyle = '#333333';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(bat.radius * 0.3, 0);
+            ctx.lineTo(bat.radius * 1.8, -bat.radius * 0.3);
+            ctx.moveTo(bat.radius * 0.3, 0);
+            ctx.lineTo(bat.radius * 1.7, bat.radius * 0.4);
+            ctx.moveTo(bat.radius * 0.3, 0);
+            ctx.lineTo(bat.radius * 1.1, bat.radius * 0.4);
+            ctx.stroke();
+            ctx.restore();
+
+            // Ears
+            ctx.fillStyle = '#1A1A1A';
+            // Left ear
+            ctx.beginPath();
+            ctx.moveTo(-bat.radius * 0.3, -bat.radius * 0.8);
+            ctx.lineTo(-bat.radius * 0.35, -bat.radius * 1.1);
+            ctx.lineTo(-bat.radius * 0.15, -bat.radius * 0.85);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Right ear
+            ctx.beginPath();
+            ctx.moveTo(bat.radius * 0.3, -bat.radius * 0.8);
+            ctx.lineTo(bat.radius * 0.35, -bat.radius * 1.1);
+            ctx.lineTo(bat.radius * 0.15, -bat.radius * 0.85);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Inner ears
+            ctx.fillStyle = '#FF69B4';
+            ctx.beginPath();
+            ctx.moveTo(-bat.radius * 0.25, -bat.radius * 0.85);
+            ctx.lineTo(-bat.radius * 0.28, -bat.radius * 1.0);
+            ctx.lineTo(-bat.radius * 0.2, -bat.radius * 0.87);
+            ctx.closePath();
+            ctx.moveTo(bat.radius * 0.25, -bat.radius * 0.85);
+            ctx.lineTo(bat.radius * 0.28, -bat.radius * 1.0);
+            ctx.lineTo(bat.radius * 0.2, -bat.radius * 0.87);
+            ctx.closePath();
+            ctx.fill();
+
+            // Eyes (red and glowing - more intense when chasing)
+            ctx.fillStyle = bat.isKnockedOut ? '#444444' : '#FF0000';
+            ctx.shadowColor = '#FF0000';
+            ctx.shadowBlur = bat.isKnockedOut ? 0 : (bat.state === 'chasing' ? 10 : 5);
+            ctx.beginPath();
+            ctx.arc(-bat.radius * 0.2, -bat.radius * 0.6, bat.state === 'chasing' ? 4 : 3, 0, Math.PI * 2);
+            ctx.arc(bat.radius * 0.2, -bat.radius * 0.6, bat.state === 'chasing' ? 4 : 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            
+            // Eye glow
+            if (!bat.isKnockedOut) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.beginPath();
+                ctx.arc(-bat.radius * 0.18, -bat.radius * 0.62, 1, 0, Math.PI * 2);
+                ctx.arc(bat.radius * 0.22, -bat.radius * 0.62, 1, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Nose
+            ctx.fillStyle = '#FF69B4';
+            ctx.beginPath();
+            ctx.ellipse(0, -bat.radius * 0.5, 2, 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Fangs
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.moveTo(-bat.radius * 0.1, -bat.radius * 0.4);
+            ctx.lineTo(-bat.radius * 0.08, -bat.radius * 0.3);
+            ctx.lineTo(-bat.radius * 0.12, -bat.radius * 0.3);
+            ctx.closePath();
+            ctx.moveTo(bat.radius * 0.1, -bat.radius * 0.4);
+            ctx.lineTo(bat.radius * 0.08, -bat.radius * 0.3);
+            ctx.lineTo(bat.radius * 0.12, -bat.radius * 0.3);
+            ctx.closePath();
+            ctx.fill();
+
+            // Tiny feet (if hanging)
+            if (bat.state === 'hanging') {
+                ctx.fillStyle = '#333333';
+                ctx.beginPath();
+                ctx.ellipse(-bat.radius * 0.2, bat.radius * 0.8, 3, 4, 0, 0, Math.PI * 2);
+                ctx.ellipse(bat.radius * 0.2, bat.radius * 0.8, 3, 4, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Claws
+                ctx.strokeStyle = '#222222';
+                ctx.lineWidth = 1;
+                for (let i = -1; i <= 1; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(-bat.radius * 0.2 + i * 2, bat.radius * 0.8);
+                    ctx.lineTo(-bat.radius * 0.2 + i * 2, bat.radius * 0.85);
+                    ctx.moveTo(bat.radius * 0.2 + i * 2, bat.radius * 0.8);
+                    ctx.lineTo(bat.radius * 0.2 + i * 2, bat.radius * 0.85);
+                    ctx.stroke();
+                }
+            }
+
+            // Dizzy stars if knocked out
+            if (bat.isKnockedOut) {
+                ctx.fillStyle = '#FFD700';
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                const starOffset = Math.sin(Date.now() * 0.005) * 3;
+                ctx.fillText('★', -12, -bat.radius - 8 + starOffset);
+                ctx.fillText('★', 0, -bat.radius - 12 - starOffset);
+                ctx.fillText('★', 12, -bat.radius - 8 + starOffset);
+            }
+
+            ctx.restore();
+        }
+
+        function drawSpider(spider) {
+            ctx.save();
+            ctx.translate(spider.x, spider.y);
+
+            // Draw 8 legs (4 on each side) with improved design - REDUCED BY 60%
+            ctx.strokeStyle = spider.isKnockedOut ? '#666666' : '#2A0845';
+            ctx.lineCap = 'round';
+            
+            // Left side legs
+            for (let i = 0; i < 4; i++) {
+                const baseAngle = Math.PI + (i * Math.PI / 8) - Math.PI / 4;
+                const legWave = Math.sin(spider.legPhase + i * 0.5) * 0.15;
+                
+                // Draw leg with three segments for more realistic look
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                
+                // Start from body (closer to center now)
+                const startX = Math.cos(baseAngle) * spider.radius * 0.3;
+                const startY = Math.sin(baseAngle) * spider.radius * 0.3;
+                ctx.moveTo(startX, startY);
+                
+                // First segment (femur) - reduced by 60%
+                const seg1Angle = baseAngle + legWave;
+                const seg1Length = spider.radius * 0.28;
+                const seg1X = startX + Math.cos(seg1Angle) * seg1Length;
+                const seg1Y = startY + Math.sin(seg1Angle) * seg1Length;
+                ctx.lineTo(seg1X, seg1Y);
+                
+                // Second segment (tibia) - bends downward - reduced by 60%
+                ctx.lineWidth = 2.5;
+                const seg2Angle = baseAngle + legWave * 0.5 + 0.2;
+                const seg2Length = spider.radius * 0.24;
+                const seg2X = seg1X + Math.cos(seg2Angle) * seg2Length;
+                const seg2Y = seg1Y + Math.sin(seg2Angle) * seg2Length;
+                ctx.lineTo(seg2X, seg2Y);
+                
+                // Third segment (tarsus) - touches ground - reduced by 60%
+                ctx.lineWidth = 2;
+                const seg3Angle = baseAngle + 0.3;
+                const seg3Length = spider.radius * 0.2;
+                const endX = seg2X + Math.cos(seg3Angle) * seg3Length;
+                const endY = seg2Y + Math.sin(seg3Angle) * seg3Length;
+                ctx.lineTo(endX, endY);
+                
+                ctx.stroke();
+                
+                // Add small claw at the end
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(endX, endY);
+                ctx.lineTo(endX - 1, endY + 2);
+                ctx.moveTo(endX, endY);
+                ctx.lineTo(endX + 1, endY + 2);
+                ctx.stroke();
+            }
+            
+            // Right side legs
+            for (let i = 0; i < 4; i++) {
+                const baseAngle = (i * Math.PI / 8) - Math.PI / 4;
+                const legWave = Math.sin(spider.legPhase + i * 0.5 + Math.PI) * 0.15;
+                
+                // Draw leg with three segments for more realistic look
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                
+                // Start from body (closer to center now)
+                const startX = Math.cos(baseAngle) * spider.radius * 0.3;
+                const startY = Math.sin(baseAngle) * spider.radius * 0.3;
+                ctx.moveTo(startX, startY);
+                
+                // First segment (femur) - reduced by 60%
+                const seg1Angle = baseAngle + legWave;
+                const seg1Length = spider.radius * 0.28;
+                const seg1X = startX + Math.cos(seg1Angle) * seg1Length;
+                const seg1Y = startY + Math.sin(seg1Angle) * seg1Length;
+                ctx.lineTo(seg1X, seg1Y);
+                
+                // Second segment (tibia) - bends downward - reduced by 60%
+                ctx.lineWidth = 2.5;
+                const seg2Angle = baseAngle + legWave * 0.5 - 0.2;
+                const seg2Length = spider.radius * 0.24;
+                const seg2X = seg1X + Math.cos(seg2Angle) * seg2Length;
+                const seg2Y = seg1Y + Math.sin(seg2Angle) * seg2Length;
+                ctx.lineTo(seg2X, seg2Y);
+                
+                // Third segment (tarsus) - touches ground - reduced by 60%
+                ctx.lineWidth = 2;
+                const seg3Angle = baseAngle - 0.3;
+                const seg3Length = spider.radius * 0.2;
+                const endX = seg2X + Math.cos(seg3Angle) * seg3Length;
+                const endY = seg2Y + Math.sin(seg3Angle) * seg3Length;
+                ctx.lineTo(endX, endY);
+                
+                ctx.stroke();
+                
+                // Add small claw at the end
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(endX, endY);
+                ctx.lineTo(endX - 1, endY + 2);
+                ctx.moveTo(endX, endY);
+                ctx.lineTo(endX + 1, endY + 2);
+                ctx.stroke();
+            }
+
+            // Cephalothorax (front body)
+            ctx.fillStyle = spider.isKnockedOut ? '#777777' : '#3A0E5A';
+            ctx.beginPath();
+            ctx.ellipse(0, -spider.radius * 0.2, spider.radius * 0.5, spider.radius * 0.4, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Abdomen (back body)
+            const gradient = ctx.createRadialGradient(0, spider.radius * 0.3, 0, 0, spider.radius * 0.3, spider.radius * 0.7);
+            gradient.addColorStop(0, spider.isKnockedOut ? '#888888' : '#6A0DAD');
+            gradient.addColorStop(1, spider.isKnockedOut ? '#666666' : '#4B0082');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.ellipse(0, spider.radius * 0.3, spider.radius * 0.7, spider.radius * 0.9, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Abdomen pattern
+            ctx.strokeStyle = spider.isKnockedOut ? '#777777' : '#8B3A8B';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(0, spider.radius * 0.3, spider.radius * 0.4, Math.PI * 0.2, Math.PI * 0.8);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(0, spider.radius * 0.3, spider.radius * 0.4, -Math.PI * 0.8, -Math.PI * 0.2);
+            ctx.stroke();
+
+            // Pedipalps (small front appendages)
+            ctx.fillStyle = spider.isKnockedOut ? '#666666' : '#2A0845';
+            ctx.beginPath();
+            ctx.ellipse(-spider.radius * 0.15, -spider.radius * 0.4, 3, 4, 0, 0, Math.PI * 2);
+            ctx.ellipse(spider.radius * 0.15, -spider.radius * 0.4, 3, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Eyes (8 eyes for realism)
+            ctx.fillStyle = spider.isKnockedOut ? '#444444' : '#FF0000';
+            // Main eyes
+            ctx.beginPath();
+            ctx.arc(-spider.radius * 0.2, -spider.radius * 0.25, 3, 0, Math.PI * 2);
+            ctx.arc(spider.radius * 0.2, -spider.radius * 0.25, 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Secondary eyes
+            ctx.beginPath();
+            ctx.arc(-spider.radius * 0.35, -spider.radius * 0.2, 2, 0, Math.PI * 2);
+            ctx.arc(spider.radius * 0.35, -spider.radius * 0.2, 2, 0, Math.PI * 2);
+            ctx.arc(-spider.radius * 0.1, -spider.radius * 0.35, 2, 0, Math.PI * 2);
+            ctx.arc(spider.radius * 0.1, -spider.radius * 0.35, 2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Tiny eyes
+            ctx.beginPath();
+            ctx.arc(-spider.radius * 0.25, -spider.radius * 0.35, 1.5, 0, Math.PI * 2);
+            ctx.arc(spider.radius * 0.25, -spider.radius * 0.35, 1.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Eye shine
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.beginPath();
+            ctx.arc(-spider.radius * 0.18, -spider.radius * 0.27, 1, 0, Math.PI * 2);
+            ctx.arc(spider.radius * 0.22, -spider.radius * 0.27, 1, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Chelicerae (fangs)
+            ctx.fillStyle = spider.isKnockedOut ? '#555555' : '#8B008B';
+            ctx.beginPath();
+            ctx.moveTo(-spider.radius * 0.1, -spider.radius * 0.15);
+            ctx.lineTo(-spider.radius * 0.08, -spider.radius * 0.05);
+            ctx.lineTo(-spider.radius * 0.12, -spider.radius * 0.05);
+            ctx.closePath();
+            ctx.moveTo(spider.radius * 0.1, -spider.radius * 0.15);
+            ctx.lineTo(spider.radius * 0.08, -spider.radius * 0.05);
+            ctx.lineTo(spider.radius * 0.12, -spider.radius * 0.05);
+            ctx.closePath();
+            ctx.fill();
+
+            // Dizzy stars if knocked out
+            if (spider.isKnockedOut) {
+                ctx.fillStyle = '#FFD700';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                const starOffset = Math.sin(Date.now() * 0.005) * 5;
+                ctx.fillText('★', -15, -spider.radius - 10 + starOffset);
+                ctx.fillText('★', 0, -spider.radius - 15 - starOffset);
+                ctx.fillText('★', 15, -spider.radius - 10 + starOffset);
+            }
+
+            ctx.restore();
+        }
+
+        function drawFrog(frog) {
+            ctx.save();
+            ctx.translate(frog.x, frog.y);
+
+            // Back legs (drawn first so they appear behind)
+            ctx.strokeStyle = '#228B22';
+            ctx.fillStyle = '#228B22';
+            ctx.lineWidth = 5;
+            
+            // Left back leg
+            ctx.beginPath();
+            ctx.ellipse(-frog.radius * 0.7, frog.radius * 0.2, 8, 12, -Math.PI / 6, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Left foot
+            ctx.beginPath();
+            ctx.ellipse(-frog.radius * 1.2, frog.radius * 0.5, 10, 6, -Math.PI / 4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Left toes
+            ctx.strokeStyle = '#228B22';
+            ctx.lineWidth = 2;
+            for (let i = -1; i <= 1; i++) {
+                ctx.beginPath();
+                ctx.moveTo(-frog.radius * 1.2, frog.radius * 0.5);
+                ctx.lineTo(-frog.radius * 1.3 + i * 3, frog.radius * 0.6);
+                ctx.stroke();
+            }
+            
+            // Right back leg
+            ctx.fillStyle = '#228B22';
+            ctx.beginPath();
+            ctx.ellipse(frog.radius * 0.7, frog.radius * 0.2, 8, 12, Math.PI / 6, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Right foot
+            ctx.beginPath();
+            ctx.ellipse(frog.radius * 1.2, frog.radius * 0.5, 10, 6, Math.PI / 4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Right toes
+            ctx.strokeStyle = '#228B22';
+            ctx.lineWidth = 2;
+            for (let i = -1; i <= 1; i++) {
+                ctx.beginPath();
+                ctx.moveTo(frog.radius * 1.2, frog.radius * 0.5);
+                ctx.lineTo(frog.radius * 1.3 + i * 3, frog.radius * 0.6);
+                ctx.stroke();
+            }
+
+            // Main body
+            const bodyGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, frog.radius);
+            bodyGradient.addColorStop(0, '#90EE90');
+            bodyGradient.addColorStop(0.7, '#32CD32');
+            bodyGradient.addColorStop(1, '#228B22');
+            ctx.fillStyle = bodyGradient;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, frog.radius * 0.9, frog.radius * 0.8, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Belly
+            ctx.fillStyle = '#ADFF2F';
+            ctx.beginPath();
+            ctx.ellipse(0, frog.radius * 0.3, frog.radius * 0.6, frog.radius * 0.5, 0, 0, Math.PI);
+            ctx.fill();
+            
+            // Belly pattern
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.beginPath();
+            ctx.ellipse(0, frog.radius * 0.3, frog.radius * 0.4, frog.radius * 0.3, 0, 0, Math.PI);
+            ctx.fill();
+
+            // Head
+            ctx.fillStyle = '#32CD32';
+            ctx.beginPath();
+            ctx.ellipse(0, -frog.radius * 0.5, frog.radius * 0.8, frog.radius * 0.6, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Eye bulges
+            ctx.fillStyle = '#2E8B2E';
+            ctx.beginPath();
+            ctx.arc(-frog.radius * 0.45, -frog.radius * 0.7, frog.radius * 0.35, 0, Math.PI * 2);
+            ctx.arc(frog.radius * 0.45, -frog.radius * 0.7, frog.radius * 0.35, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Eyes
+            const eyeGradient = ctx.createRadialGradient(-frog.radius * 0.45, -frog.radius * 0.7, 0, 
+                                                         -frog.radius * 0.45, -frog.radius * 0.7, frog.radius * 0.3);
+            eyeGradient.addColorStop(0, '#FFD700');
+            eyeGradient.addColorStop(0.5, '#FFA500');
+            eyeGradient.addColorStop(1, '#FF8C00');
+            ctx.fillStyle = eyeGradient;
+            ctx.beginPath();
+            ctx.arc(-frog.radius * 0.45, -frog.radius * 0.7, frog.radius * 0.28, 0, Math.PI * 2);
+            ctx.arc(frog.radius * 0.45, -frog.radius * 0.7, frog.radius * 0.28, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Pupils
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            ctx.ellipse(-frog.radius * 0.45, -frog.radius * 0.7, 4, 8, 0, 0, Math.PI * 2);
+            ctx.ellipse(frog.radius * 0.45, -frog.radius * 0.7, 4, 8, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Eye highlights
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.beginPath();
+            ctx.arc(-frog.radius * 0.5, -frog.radius * 0.8, 3, 0, Math.PI * 2);
+            ctx.arc(frog.radius * 0.4, -frog.radius * 0.8, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Nostrils
+            ctx.fillStyle = '#1C5E1C';
+            ctx.beginPath();
+            ctx.ellipse(-frog.radius * 0.15, -frog.radius * 0.45, 2, 3, 0, 0, Math.PI * 2);
+            ctx.ellipse(frog.radius * 0.15, -frog.radius * 0.45, 2, 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Mouth line
+            ctx.strokeStyle = '#1C5E1C';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(0, -frog.radius * 0.3, frog.radius * 0.5, Math.PI * 0.2, Math.PI * 0.8);
+            ctx.stroke();
+
+            // Front legs
+            ctx.fillStyle = '#32CD32';
+            // Left front leg
+            ctx.beginPath();
+            ctx.ellipse(-frog.radius * 0.6, frog.radius * 0.1, 6, 10, -Math.PI / 8, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Left front foot
+            ctx.beginPath();
+            ctx.arc(-frog.radius * 0.65, frog.radius * 0.35, 5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Right front leg
+            ctx.beginPath();
+            ctx.ellipse(frog.radius * 0.6, frog.radius * 0.1, 6, 10, Math.PI / 8, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Right front foot
+            ctx.beginPath();
+            ctx.arc(frog.radius * 0.65, frog.radius * 0.35, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Spots on body
+            ctx.fillStyle = 'rgba(0, 100, 0, 0.3)';
+            ctx.beginPath();
+            ctx.arc(-frog.radius * 0.3, -frog.radius * 0.1, 4, 0, Math.PI * 2);
+            ctx.arc(frog.radius * 0.4, frog.radius * 0.1, 5, 0, Math.PI * 2);
+            ctx.arc(-frog.radius * 0.2, frog.radius * 0.3, 3, 0, Math.PI * 2);
+            ctx.arc(frog.radius * 0.3, -frog.radius * 0.2, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw sticky tongue if active
+            if (frog.tongueActive) {
+                const tongueEndX = Math.cos(frog.tongueAngle) * frog.tongueLength;
+                const tongueEndY = Math.sin(frog.tongueAngle) * frog.tongueLength;
+                
+                // Tongue gradient
+                const tongueGradient = ctx.createLinearGradient(0, -frog.radius * 0.3, tongueEndX, tongueEndY);
+                tongueGradient.addColorStop(0, '#FF69B4');
+                tongueGradient.addColorStop(0.5, '#FF1493');
+                tongueGradient.addColorStop(1, '#C71585');
+                
+                // Main tongue body with curve
+                ctx.strokeStyle = tongueGradient;
+                ctx.lineWidth = 6;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(0, -frog.radius * 0.3);
+                
+                // Add slight curve to tongue
+                const midX = Math.cos(frog.tongueAngle) * (frog.tongueLength * 0.5);
+                const midY = Math.sin(frog.tongueAngle) * (frog.tongueLength * 0.5) - 5;
+                
+                ctx.quadraticCurveTo(midX, midY, tongueEndX, tongueEndY);
+                ctx.stroke();
+                
+                // Sticky saliva strands
+                ctx.strokeStyle = 'rgba(255, 182, 193, 0.6)';
+                ctx.lineWidth = 1;
+                for (let i = 0; i < 3; i++) {
+                    const offset = (i - 1) * 3;
+                    ctx.beginPath();
+                    ctx.moveTo(0, -frog.radius * 0.3);
+                    const strandEndX = tongueEndX + offset;
+                    const strandEndY = tongueEndY + Math.sin(Date.now() * 0.01 + i) * 2;
+                    ctx.quadraticCurveTo(midX + offset/2, midY, strandEndX, strandEndY);
+                    ctx.stroke();
+                }
+
+                // Sticky tip
+                const stickyGradient = ctx.createRadialGradient(tongueEndX, tongueEndY, 0, 
+                                                                tongueEndX, tongueEndY, 8);
+                stickyGradient.addColorStop(0, '#FF1493');
+                stickyGradient.addColorStop(0.7, '#FF69B4');
+                stickyGradient.addColorStop(1, 'rgba(255, 105, 180, 0.6)');
+                
+                ctx.fillStyle = stickyGradient;
+                ctx.beginPath();
+                ctx.arc(tongueEndX, tongueEndY, 8, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Sticky droplets
+                ctx.fillStyle = 'rgba(255, 182, 193, 0.8)';
+                for (let i = 0; i < 3; i++) {
+                    const angle = (Date.now() * 0.002 + i * 2);
+                    const dropX = tongueEndX + Math.cos(angle) * 10;
+                    const dropY = tongueEndY + Math.sin(angle) * 10;
+                    ctx.beginPath();
+                    ctx.arc(dropX, dropY, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                // Highlight on tip
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.beginPath();
+                ctx.arc(tongueEndX - 2, tongueEndY - 2, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.restore();
+        }
+
+        function drawHexagonalWeb(spider, webAngle, webLength) {
+            ctx.save();
+            
+            // Calculate web end point
+            const webEndX = spider.x + Math.cos(webAngle) * webLength;
+            const webEndY = spider.y + Math.sin(webAngle) * webLength;
+            
+            // Draw web with hexagonal pattern
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.lineWidth = 1.5;
+            
+            // Main line
+            ctx.beginPath();
+            ctx.moveTo(spider.x, spider.y);
+            ctx.lineTo(webEndX, webEndY);
+            ctx.stroke();
+            
+            // Draw hexagonal pattern along the web
+            const hexSize = 12;
+            const numHexagons = Math.floor(webLength / (hexSize * 1.5));
+            
+            for (let i = 1; i <= numHexagons; i++) {
+                const distance = i * hexSize * 1.5;
+                if (distance > webLength) break;
+                
+                const hexX = spider.x + Math.cos(webAngle) * distance;
+                const hexY = spider.y + Math.sin(webAngle) * distance;
+                
+                // Draw hexagon
+                ctx.beginPath();
+                for (let j = 0; j < 6; j++) {
+                    const angle = webAngle + (j * Math.PI / 3);
+                    const x = hexX + Math.cos(angle) * hexSize;
+                    const y = hexY + Math.sin(angle) * hexSize;
+                    
+                    if (j === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.closePath();
+                ctx.stroke();
+                
+                // Connect to main line
+                ctx.beginPath();
+                ctx.moveTo(hexX, hexY);
+                ctx.lineTo(spider.x + Math.cos(webAngle) * (distance - hexSize * 0.75), 
+                          spider.y + Math.sin(webAngle) * (distance - hexSize * 0.75));
+                ctx.stroke();
+            }
+            
+            ctx.restore();
+        }
+
+        function drawPowerUpFlower(x, y, radius, pulsePhase) {
+            const scale = 1 + Math.sin(pulsePhase) * 0.1;
+            
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(scale, scale);
+
+            // Glow effect
+            ctx.shadowColor = '#FFD700';
+            ctx.shadowBlur = 20;
+
+            // Draw petals
+            ctx.fillStyle = '#FFD700';
+            for (let i = 0; i < 6; i++) {
+                const angle = (i * Math.PI * 2) / 6;
+                ctx.save();
+                ctx.rotate(angle);
+                ctx.beginPath();
+                ctx.ellipse(0, -radius * 0.6, radius * 0.5, radius * 0.8, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // Draw center
+            ctx.fillStyle = '#FFA500';
+            ctx.beginPath();
+            ctx.arc(0, 0, radius * 0.4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Star in center
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('⭐', 0, 0);
+
+            ctx.restore();
+        }
+
+        function drawStarPowerUp(star) {
+            const scale = 1 + Math.sin(star.pulsePhase) * 0.2;
+            
+            ctx.save();
+            ctx.translate(star.x, star.y);
+            ctx.rotate(star.rotation);
+            ctx.scale(scale, scale);
+
+            // Glow effect
+            ctx.shadowColor = '#FFD700';
+            ctx.shadowBlur = 25;
+
+            // Draw star shape
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            for (let i = 0; i < 5; i++) {
+                const angle = (i * Math.PI * 2) / 5 - Math.PI / 2;
+                const outerRadius = star.radius;
+                const innerRadius = star.radius * 0.5;
+                
+                // Outer point
+                const x1 = Math.cos(angle) * outerRadius;
+                const y1 = Math.sin(angle) * outerRadius;
+                
+                // Inner point
+                const x2 = Math.cos(angle + Math.PI / 5) * innerRadius;
+                const y2 = Math.sin(angle + Math.PI / 5) * innerRadius;
+                
+                if (i === 0) {
+                    ctx.moveTo(x1, y1);
+                } else {
+                    ctx.lineTo(x1, y1);
+                }
+                ctx.lineTo(x2, y2);
+            }
+            ctx.closePath();
+            ctx.fill();
+
+            // Inner star
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            for (let i = 0; i < 5; i++) {
+                const angle = (i * Math.PI * 2) / 5 - Math.PI / 2;
+                const outerRadius = star.radius * 0.6;
+                const innerRadius = star.radius * 0.3;
+                
+                // Outer point
+                const x1 = Math.cos(angle) * outerRadius;
+                const y1 = Math.sin(angle) * outerRadius;
+                
+                // Inner point
+                const x2 = Math.cos(angle + Math.PI / 5) * innerRadius;
+                const y2 = Math.sin(angle + Math.PI / 5) * innerRadius;
+                
+                if (i === 0) {
+                    ctx.moveTo(x1, y1);
+                } else {
+                    ctx.lineTo(x1, y1);
+                }
+                ctx.lineTo(x2, y2);
+            }
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function gameOver() {
+            gameState = 'gameOver';
+            
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('butterflyHighScore', highScore);
+                highScoreElement.textContent = highScore;
+                messageTitle.textContent = 'New Best Score! 🌟';
+                messageText.textContent = `Amazing! You scored ${score} points!`;
+            } else {
+                messageTitle.textContent = 'Nice Try! 🦋';
+                messageText.textContent = `You scored ${score} points. Try again!`;
+            }
+            
+            playButton.textContent = 'Play Again';
+            gameMessage.style.display = 'block';
+            
+            // Ensure the game loop stops running
+            cancelAnimationFrame(animationFrameId);
+        }
+
+        let animationFrameId;
+        
+        function gameLoop() {
+            if (gameState === 'playing' || gameState === 'captured' || gameState === 'returning') {
+                updateGame();
+                drawGame();
+                animationFrameId = requestAnimationFrame(gameLoop);
+            }
+        }
+
+        // Initial draw
+        drawGame();
+    </script>
+</body>
+</html>
